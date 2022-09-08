@@ -11,54 +11,29 @@ from torch.autograd import Function
 device = torch.device('cuda:0')
 
 class CNN(nn.Module):
-
-    def __init__(self, input_image=torch.zeros(1, 3, 32, 32), kernel=(3, 3), stride=1, padding=1, max_kernel=(2, 2),
-                 n_classes=4):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, device):
         super(CNN, self).__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
+        self.num_layers = num_layers
+        self.device = device
 
-        self.ClassifierCNN = nn.Sequential(
-            nn.Conv2d(5, 32, kernel_size=3, padding=(1, 1)),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-
-            nn.Conv2d(32, 32, kernel_size=3),
-            nn.ReLU(),
-
-            nn.Conv2d(32, 32, kernel_size=3),
-            nn.ReLU(),
-
-            nn.Conv2d(32, 32, kernel_size=3),
-            nn.ReLU(),
-
-            nn.MaxPool2d(kernel_size=2),
-
-            nn.Conv2d(32, 64, kernel_size=3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-
-            nn.Conv2d(64, 64, kernel_size=3),
-            nn.ReLU(),
-
-            nn.MaxPool2d(kernel_size=2),
-
-            nn.Conv2d(64, 128, kernel_size=3),
-            nn.ReLU(),
-
-            nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
-
-            Flatten(),
-
-            nn.Linear(128,64)
-        )
+        self.conv1 = nn.Conv1d(1, 32, 3, 1)
+        self.conv2 = nn.Conv1d(32, 64, 3, 1)
+        self.conv3 = nn.Conv1d(64, 128, 3, 1)
+        self.fc1 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(64, 5)
 
     def forward(self, x):
-        x = self.ClassifierCNN(x)
-        x = x.view(x.shape[0], -1)
-        #x = self.ClassifierFC(x.view(x.shape[0], -1))
+        x = x.view(-1, 1, self.input_dim)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool1d(x, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool1d(x, 2)
+        x = F.relu(self.conv3(x))
+        x = F.max_pool1d(x, 2)
+        x = x.view(-1, 128)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
         return x
-
-class Flatten(nn.Module):
-
-    def forward(self, input):
-        return input.view(input.size(0), -1)
