@@ -8,7 +8,10 @@ import torch.optim as optim
 
 from torch.autograd import Function
 
-device = torch.device('cuda:0')
+device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device("mps")
+eeg_input_dim = 310
+eye_input_dim = 33
+output_dim = 12
 
 class CNN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers, device):
@@ -37,3 +40,8 @@ class CNN(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
+if __name__ =="__main__":
+    device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("mps")
+    model = CNN(eeg_input_dim, [32, 64, 128], output_dim, 5, device)
+    print(model)

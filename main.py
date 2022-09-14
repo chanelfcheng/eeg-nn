@@ -5,7 +5,7 @@ from sklearn import preprocessing
 import torch
 import torch.nn as nn
 
-from utils import DCCA_AM, loading_cv_data
+from utils2 import DCCA_AM, loading_cv_data
 import logging
 
 import pickle
@@ -25,8 +25,7 @@ learning_rate = 5 * 1e-4
 batch_size = 50
 
 emotion_categories = 5
-device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-
+device = 'cuda:0' if torch.cuda.is_available() else torch.device("mps")
 res_dir = './res/cv3/'
 if not os.path.exists(res_dir):
     os.makedirs(res_dir)
@@ -34,12 +33,16 @@ if not os.path.exists(res_dir):
 cv = 3
 
 
-
 if __name__ == "__main__":
+    # this ensures that the current MacOS version is at least 12.3+
+    print(torch.backends.mps.is_available())
+    # this ensures that the current current PyTorch installation was built with MPS activated.
+    print(torch.backends.mps.is_built())
+    print(device)
 
     # preparing data
     for f_id in file_list:
-        print(f_id)
+        print(f"This is f id: {f_id}")
         logging.basicConfig(filename='./logs/cv3.log', level=logging.DEBUG)
         logging.debug('{}'.format(f_id))
         logging.debug('Task-Epoch-CCALoss-PredicLoss-PredicAcc')
@@ -67,12 +70,26 @@ if __name__ == "__main__":
         test_eye = scaler.fit_transform(test_eye)
 
 
-        train_eeg = torch.from_numpy(train_eeg).to(torch.float).to(device)
-        train_eye = torch.from_numpy(train_eye).to(torch.float).to(device)
-        test_eeg = torch.from_numpy(test_eeg).to(torch.float).to(device)
-        test_eye = torch.from_numpy(test_eye).to(torch.float).to(device)
-        train_label = torch.from_numpy(train_label).to(torch.long).to(device)
-        test_label = torch.from_numpy(test_label).to(torch.long).to(device)
+        if torch.cuda.is_available():
+            train_eeg = torch.from_numpy(train_eeg).to(torch.float).to(device)
+            train_eye = torch.from_numpy(train_eye).to(torch.float).to(device)
+            test_eeg = torch.from_numpy(test_eeg).to(torch.float).to(device)
+            test_eye = torch.from_numpy(test_eye).to(torch.float).to(device)
+            train_label = torch.from_numpy(train_label).to(torch.long).to(device)
+            test_label = torch.from_numpy(test_label).to(torch.long).to(device)
+        elif torch.backends.mps.is_available():
+            train_eeg = np.float32(train_eeg)
+            train_eye = np.float32(train_eye)
+            test_eeg = np.float32(test_eeg)
+            test_eye = np.float32(test_eye)
+
+            train_eeg = torch.from_numpy(train_eeg).to(device)
+            train_eye = torch.from_numpy(train_eye).to(device)
+            test_eeg = torch.from_numpy(test_eeg).to(device)
+            test_eye = torch.from_numpy(test_eye).to(device)
+
+            train_label = torch.from_numpy(train_label).to(torch.long).to(device)
+            test_label = torch.from_numpy(test_label).to(torch.long).to(device)
 
         # training process
         for hyper_choose in range(100):
@@ -88,13 +105,11 @@ if __name__ == "__main__":
             # try 100 combinations of different hidden units
             layer_sizes = [np.random.randint(100,200), np.random.randint(20,50), output_dim]
             logging.info('{}-{}'.format(layer_sizes[0], layer_sizes[1]))
-            print(layer_sizes)
             mymodel = DCCA_AM(eeg_input_dim, eye_input_dim, layer_sizes, layer_sizes, output_dim, emotion_categories, device).to(device)
             optimizer_classifier = torch.optim.RMSprop(mymodel.parameters(), lr=learning_rate)
             optimizer_model1 = torch.optim.RMSprop(iter(list(mymodel.parameters())[0:8]), lr=learning_rate/2)
             optimizer_model2 = torch.optim.RMSprop(iter(list(mymodel.parameters())[8:16]), lr=learning_rate/2)
             class_loss_func = nn.CrossEntropyLoss()
-
             for epoch in range(epochs):
                 mymodel.train()
                 best_acc = 0
@@ -102,7 +117,7 @@ if __name__ == "__main__":
                 for b_id in range(batch_number+1):
                     if b_id == batch_number:
                         train_eeg_used = train_eeg[batch_size*batch_number:, :]
-                        train_eye_used = train_eye[batch_size*batch_number: , :]
+                        train_eye_used = train_eye[batch_size*batch_number:, :]
                         train_label_used = train_label[batch_size*batch_number:]
                     else:
                         train_eeg_used = train_eeg[b_id*batch_size:(b_id+1)*batch_size, :]
