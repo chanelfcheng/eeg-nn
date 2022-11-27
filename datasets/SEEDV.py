@@ -20,6 +20,9 @@ import csv
 import random
 import pickle
 
+
+from datasets import dataset_dir
+
 class SEEDVFewShotLearning(Dataset):
     """
     Based on https://github.com/AntreasAntoniou/HowToTrainYourMAMLPytorch
@@ -156,7 +159,7 @@ class SEEDVFewShotLearning(Dataset):
                  string-names of the class
                  label_to_index: dictionary containing human understandable string mapped to numerical indexes
         """
-        dataset_dir = os.environ['DATASET_DIR']
+        dataset_dir = os.environ['DATASET_DIR']  # TODO: 
         data_path_file = "{}/{}.json".format(dataset_dir, self.dataset_name)
         self.index_to_label_name_dict_file = "{}/map_to_label_name_{}.json".format(dataset_dir, self.dataset_name)
         self.label_name_to_map_dict_file = "{}/label_name_to_map_{}.json".format(dataset_dir, self.dataset_name)

@@ -46,7 +46,7 @@ def load_npz_data(eeg_dir, eye_dir, file_name, cv_number):
             train_label = np.hstack((train_label, train_label_tmp))    
         print(eeg_data[train_list[session_id]].shape)
         print(eeg_data[train_list[session_id]].shape)
-        input("Press enter to continue...")
+        # input("Press enter to continue...")
     assert train_eeg.shape[0] == train_eye.shape[0]
     assert train_eeg.shape[0] == train_label.shape[0]
 
@@ -82,20 +82,20 @@ def create_if_not_exists(path: str) -> None:
         os.makedirs(path)
 
 if __name__ == '__main__':
-    eeg_dir = './Data/eeg_data_sep'
-    eye_dir = './Data/eye_data_sep'
+    eeg_dir = os.path.join(os.getcwd(), 'Data/seed-v/eeg_data_sep')
+    eye_dir = os.path.join(os.getcwd(), 'Data/seed-v/eye_data_sep')
     file_list = os.listdir(eeg_dir) # Both eeg and eye data have the same file names
     
     # main folder for saving partitioned data
-    data_dir = os.path.join(os.getcwd(), 'partitioned_data')
+    partition_dir = os.path.join(os.getcwd(), 'Data/seed-v/partitioned_data')
 
     # dictionary of numerical label : emotion
     emotion_dict = {0: 'disgust', 1: 'fear', 2: 'sad', 3: 'neutral', 4: 'happy'}
 
     # create emotion folders for saving partitioned data
     for emotion in emotion_dict.values():
-        create_if_not_exists(os.path.join(data_dir, 'support', emotion))
-        create_if_not_exists(os.path.join(data_dir, 'query', emotion))
+        create_if_not_exists(os.path.join(partition_dir, 'support', emotion))
+        create_if_not_exists(os.path.join(partition_dir, 'query', emotion))
         
      
     for file_name in file_list:
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         for sample in train_data: # save train/support data to their corresponding emotion folders
             # which directory to save the data to based on the emotion label
             label = int(sample[-1])
-            save_dir = os.path.join(data_dir, 'support', emotion_dict[label])
+            save_dir = os.path.join(partition_dir, 'support', emotion_dict[label])
             # concatenate with the filename
             # save the label to where it belongs to            
             save_file = os.path.join(save_dir, f"{file_name}_{emotion_count[label]}")
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         emotion_count = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
         for sample in test_data: # do the same thing for the test/query data
             label = sample[-1]
-            save_dir = os.path.join(data_dir, 'query', emotion_dict[label])
+            save_dir = os.path.join(partition_dir, 'query', emotion_dict[label])
             save_file = os.path.join(save_dir, f"{file_name}_{emotion_count[label]}")
             emotion_count[label] += 1
             np.save(save_file, sample)
