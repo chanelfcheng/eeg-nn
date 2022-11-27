@@ -38,7 +38,7 @@ cv = 3
 if __name__ == "__main__":
 
     # preparing data
-    for f_id in file_list:
+    for f_id in file_list: # each file (f_id) is a subject which has 45 samples (3 sessions * 3 emotion clips * 5 emotion categories)
         print(f_id)
         logging.basicConfig(filename='./logs/cv3.log', level=logging.DEBUG)
         logging.debug('{}'.format(f_id))
@@ -48,8 +48,8 @@ if __name__ == "__main__":
         np.random.shuffle(train_all)
         np.random.shuffle(test_all)
 
-        sample_num = train_all.shape[0]
-        batch_number = sample_num // batch_size
+        num_samples = train_all.shape[0] 
+        num_batches = num_samples // batch_size
 
         train_eeg = train_all[:, 0:310]
         train_eye = train_all[:, 310:343]
@@ -99,11 +99,11 @@ if __name__ == "__main__":
                 mymodel.train()
                 best_acc = 0
                 total_classification_loss = 0
-                for b_id in range(batch_number+1):
-                    if b_id == batch_number:
-                        train_eeg_used = train_eeg[batch_size*batch_number:, :]
-                        train_eye_used = train_eye[batch_size*batch_number: , :]
-                        train_label_used = train_label[batch_size*batch_number:]
+                for b_id in range(num_batches+1):
+                    if b_id == num_batches:
+                        train_eeg_used = train_eeg[batch_size*num_batches:, :]
+                        train_eye_used = train_eye[batch_size*num_batches: , :]
+                        train_label_used = train_label[batch_size*num_batches:]
                     else:
                         train_eeg_used = train_eeg[b_id*batch_size:(b_id+1)*batch_size, :]
                         train_eye_used = train_eye[b_id*batch_size:(b_id+1)*batch_size, :]

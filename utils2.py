@@ -10,10 +10,6 @@ def loading_cv_data(eeg_dir, eye_dir, file_name, cv_number):
     eeg_data = pickle.loads(eeg_data_pickle['data'])
     eye_data = pickle.loads(eye_data_pickle['data'])
     label = pickle.loads(eeg_data_pickle['label'])
-
-    # print("size of eeg data: ", len(eeg_data))
-    # print("size of eye data: ", len(eye_data))
-    # print("size of labels: ", len(label))
     
     list_1 = [0,1,2,3,4,15,16,17,18,19,30,31,32,33,34]
     list_2 = [5,6,7,8,9,20,21,22,23,24,35,36,37,38,39]
