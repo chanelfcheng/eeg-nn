@@ -44,3 +44,6 @@ INFO:root:	Test	2	-1.311123284018633	1.2403539419174194	0.41185897435897434
 DEBUG:root:10_123.npz
 DEBUG:root:Task-Epoch-CCALoss-PredicLoss-PredicAcc
 INFO:root:157-28
+DEBUG:root:10_123.npz
+DEBUG:root:Task-Epoch-CCALoss-PredicLoss-PredicAcc
+INFO:root:171-23

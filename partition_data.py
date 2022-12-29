@@ -44,8 +44,8 @@ def load_npz_data(eeg_dir, eye_dir, file_name, cv_number):
             train_eeg = np.vstack((train_eeg, train_eeg_tmp))
             train_eye = np.vstack((train_eye, train_eye_tmp))
             train_label = np.hstack((train_label, train_label_tmp))    
-        print(eeg_data[train_list[session_id]].shape)
-        print(eeg_data[train_list[session_id]].shape)
+        # print(eeg_data[train_list[session_id]].shape)
+        # print(eeg_data[train_list[session_id]].shape)
         # input("Press enter to continue...")
     assert train_eeg.shape[0] == train_eye.shape[0]
     assert train_eeg.shape[0] == train_label.shape[0]
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         create_if_not_exists(os.path.join(partition_dir, 'support', emotion))
         create_if_not_exists(os.path.join(partition_dir, 'query', emotion))
         
-     
+    num = 1
     for file_name in file_list:
         print(file_name)
         train_data, test_data = load_npz_data(eeg_dir, eye_dir, file_name, 3)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
             save_dir = os.path.join(partition_dir, 'support', emotion_dict[label])
             # concatenate with the filename
             # save the label to where it belongs to            
-            save_file = os.path.join(save_dir, f"{file_name}_{emotion_count[label]}")
+            save_file = os.path.join(save_dir, f"p{num}_{emotion_count[label]}")
             emotion_count[label] += 1
             np.save(save_file, sample)
 
@@ -120,7 +120,9 @@ if __name__ == '__main__':
         for sample in test_data: # do the same thing for the test/query data
             label = sample[-1]
             save_dir = os.path.join(partition_dir, 'query', emotion_dict[label])
-            save_file = os.path.join(save_dir, f"{file_name}_{emotion_count[label]}")
+            save_file = os.path.join(save_dir, f"p{num}_{emotion_count[label]}")
             emotion_count[label] += 1
             np.save(save_file, sample)
+        
+        num += 1
         

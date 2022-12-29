@@ -11,8 +11,8 @@ import logging
 import pickle
 
 # loading data
-eeg_dir = './Data/eeg_data_sep/'
-eye_dir = './Data/eye_data_sep/'
+eeg_dir = './Data/seed-v/eeg_data_sep/'
+eye_dir = './Data/seed-v/eye_data_sep/'
 file_list = os.listdir(eeg_dir)
 file_list.sort()
 
@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
         test_eeg = scaler.fit_transform(test_eeg)
         test_eye = scaler.fit_transform(test_eye)
-
 
         train_eeg = torch.from_numpy(train_eeg).to(torch.float).to(device)
         train_eye = torch.from_numpy(train_eye).to(torch.float).to(device)

@@ -1,24 +1,22 @@
 import os
-import torch
-from torch.utils.data import Dataset
-from torchvision.transforms import transforms
 import numpy as np
 import collections
 from PIL import Image
 import csv
 import random
 
-
-import os
-import torch
-from torch.utils.data import Dataset
-from torchvision.transforms import transforms
-import numpy as np
-import collections
+import json
 from PIL import Image
-import csv
-import random
+import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+import tqdm
+import concurrent.futures
 import pickle
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+from utils.parser_utils import get_args
 
 
 from datasets import dataset_dir
@@ -116,17 +114,23 @@ class SEEDVFewShotLearning(Dataset):
             new_values = [values[idx] for idx in num_classes_idx]
             data_image_paths = dict(zip(new_keys, new_values))
             # data_image_paths = self.shuffle(data_image_paths)
+            
+            # the ID of train/val/test, will be used to split the data into train, val and test sets
             x_train_id, x_val_id, x_test_id = int(self.train_val_test_split[0] * total_label_types), \
                                               int(np.sum(self.train_val_test_split[:2]) * total_label_types), \
                                               int(total_label_types)
+
+            # using the ID of each set, we can split the data into train_classes, val_classes and test_classes
             print(x_train_id, x_val_id, x_test_id)
             x_train_classes = (class_key for class_key in list(data_image_paths.keys())[:x_train_id])
             x_val_classes = (class_key for class_key in list(data_image_paths.keys())[x_train_id:x_val_id])
             x_test_classes = (class_key for class_key in list(data_image_paths.keys())[x_val_id:x_test_id])
+            
+            # after splitting into classes, convert them to a dictionary of class : image_paths (yes)
             x_train, x_val, x_test = {class_key: data_image_paths[class_key] for class_key in x_train_classes}, \
                                      {class_key: data_image_paths[class_key] for class_key in x_val_classes}, \
                                      {class_key: data_image_paths[class_key] for class_key in x_test_classes},
-            dataset_splits = {"train": x_train, "val":x_val , "test": x_test}
+            dataset_splits = {"train": x_train, "val":x_val , "test": x_test} 
 
         if self.args.load_into_memory is True:
 
@@ -224,7 +228,7 @@ class SEEDVFewShotLearning(Dataset):
                  index_to_label_name_dict_file: dict containing numerical indexes mapped to the human understandable
                  string-names of the class
                  label_to_index: dictionary containing human understandable string mapped to numerical indexes
-        """
+        """  
         print("Get images from", self.data_path)
         data_image_path_list_raw = []
         labels = set()
@@ -237,6 +241,8 @@ class SEEDVFewShotLearning(Dataset):
                     labels.add(label)
 
         labels = sorted(labels)
+        print(labels)
+        quit()
         idx_to_label_name = {idx: label for idx, label in enumerate(labels)}
         label_name_to_idx = {label: idx for idx, label in enumerate(labels)}
         data_image_path_dict = {idx: [] for idx in list(idx_to_label_name.keys())}
@@ -277,6 +283,7 @@ class SEEDVFewShotLearning(Dataset):
         index_to_label_name = self.load_from_json(filename=self.index_to_label_name_dict_file)
         return index_to_label_name[index]
 
+    # TODO: Need to rewrite this for it to work with SEED-V labeling sample[-1]
     def get_label_from_path(self, filepath):
         """
         Given a path of an image generate the human understandable label for that image.
